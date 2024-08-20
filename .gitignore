@@ -1,0 +1,20 @@
+# OSX
+.DS_Store
+
+# Vim
+*.swp
+*.swo
+
+# patch
+*.orig
+*.rej
+
+# Local environment
+.env
+
+# Plugin directory
+.quarkus/cli/plugins/
+# TLS Certificates
+.certs/
+.ignore
+.ignored
