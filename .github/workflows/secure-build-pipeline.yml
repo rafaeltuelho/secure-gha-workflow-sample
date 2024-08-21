@@ -66,16 +66,22 @@ jobs:
           upload-release-assets: true
           upload-artifact: true
 
-      - name: Inspect the generated SBOM
-        uses: sergeysova/jq-action@v2
-        id: sbom
-        with:
-          cmd: 'jq . ./sbom.spdx -r'
-
       - name: Publish SBOM as artifact
         uses: anchore/sbom-action/publish-sbom@v0
         with:
           sbom-artifact-match: ".*\\.spdx$"
+
+      - name: Analyze SBOM with Bomber tool
+        run: | 
+          VERSION=0.5.0
+
+          echo "Setting Up Bomber"
+          wget --progress=bar:force:noscroll "https://github.com/devops-kung-fu/bomber/releases/download/v${VERSION}/bomber_${VERSION}_linux_amd64.deb" && sudo dpkg --install "bomber_${VERSION}_linux_amd64.deb"
+
+          # clean up remaining package
+          rm "bomber_${VERSION}_linux_amd64.deb"
+          echo "Running Bomber Scan on Generated SBOM"
+          bomber --severity=critical --enrich=epss scan ./sbom.spdx
 
       # - name: Release
       #   uses: softprops/action-gh-release@v2
