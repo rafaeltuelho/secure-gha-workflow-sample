@@ -59,14 +59,18 @@ jobs:
       - name: Scan with Syft to generate the SBOM
         uses: anchore/sbom-action@v0
         with:
-          artifact-name: sbom.spdx
+          format: spdx-json
           path: ./
+          artifact-name: sbom.spdx
+          output-file: ./sbom.spdx
+          upload-release-assets: true
+          upload-artifact: true
 
       - name: Inspect the generated SBOM
         uses: sergeysova/jq-action@v2
         id: sbom
         with:
-          cmd: 'jq . sbom.spdx -r'
+          cmd: 'jq . ./sbom.spdx -r'
 
       - name: Publish SBOM as artifact
         uses: anchore/sbom-action/publish-sbom@v0
