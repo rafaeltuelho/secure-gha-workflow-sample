@@ -81,9 +81,9 @@ jobs:
           # clean up remaining package
           rm "bomber_${VERSION}_linux_amd64.deb"
           echo "Running Bomber Scan on Generated SBOM"
-          pwd
-          ls -la .
-          bomber --severity=critical --enrich=epss scan ./sbom.spdx
+          #pwd
+          #ls -la .
+          bomber --severity=critical --enrich=epss scan ./sbom.cyclonedx.json
 
       - name: Analyze SBOM with Grant tool to check Licenses
         run: | 
@@ -91,7 +91,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/grant/main/install.sh | sh -s -- -b /usr/local/bin
 
           echo "Running Grant Scan on Generated SBOM"
-          grant --show-packages --osi-approved check  ./sbom.spdx
+          grant --show-packages --osi-approved check  ./sbom.cyclonedx.json
 
       # - name: Release
       #   uses: softprops/action-gh-release@v2
