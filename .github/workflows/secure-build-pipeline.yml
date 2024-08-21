@@ -30,47 +30,53 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions: 
+      actions: read   # To read the workflow path.
+      id-token: write # To sign the provenance.
+      contents: write # To add assets to a release.    
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (temurin)
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-      - run: java -version
 
-      # ========================================================
-      #
-      # Step 1: Build your artifacts.
-      #
-      # ========================================================
+      - name: Print Java version
+        run: java -version
+
       - name: Build artifacts and run unit tests using Maven Wrapper
         run: |
             # Build the app using Maven
             ./mvnw clean package
 
-      # ========================================================
-      #
-      # Step 2, 3 and 4: Scan src using Syft CLI.
-      #
-      # ========================================================
-      - name: Build artifacts and run unit tests using Maven Wrapper
-        run: |
-             syft scan dir:./ -o cyclonedx-json --file /tmp/sbom.cyclonedx.json
+      - name: Scan with Syft to generate the SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          artifact-name: sbom.spdx
+          path: ./
 
       - name: Inspect the generated SBOM
         uses: sergeysova/jq-action@v2
         id: sbom
         with:
-          cmd: 'jq . /tmp/sbom.cyclonedx.json -r'
+          cmd: 'jq . sbom.spdx -r'
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
+      - name: Publish SBOM as artifact
+        uses: anchore/sbom-action/publish-sbom@v0
         with:
-          files: /tmp/sbom.cyclonedx.json
+          sbom-artifact-match: ".*\\.spdx$"
+
+      # - name: Release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     files: /tmp/sbom.cyclonedx.json
 
   # provenance:
   #   needs: [build]
