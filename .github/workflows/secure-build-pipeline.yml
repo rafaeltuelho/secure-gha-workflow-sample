@@ -101,6 +101,7 @@ jobs:
         with:
           image: secure-quarkus-app
           tags: latest ${{ github.sha }}
+          context: ./code-with-quarkus
           containerfiles: |
             ./code-with-quarkus/src/main/docker/Dockerfile.jvm
           # build-args: |
